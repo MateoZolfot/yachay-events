@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yachay_events_backend
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/src:/usr/src/app/src
+      - ./config/firebase-service-account-key.json:/usr/src/app/config/firebase-service-account-key.json:ro
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://admin_yachay:password123@db_yachay:5432/yachay_events_db
+      JWT_SECRET: 'esteEsUnSecretoSuperSeguroParaYachayEvents123!@#'
+      GOOGLE_APPLICATION_CREDENTIALS: /usr/src/app/config/firebase-service-account-key.json
+      FIREBASE_STORAGE_BUCKET: 'yachay-events-79aa1.firebasestorage.app' # Reemplaza con tu URL de bucket
+    depends_on:
+      - db_yachay
+    networks:
+      - yachay_network
+
+  db_yachay: # Asegúrate que este servicio esté correctamente definido
+    image: postgres:14-alpine
+    container_name: yachay_events_db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: admin_yachay
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: yachay_events_db
+    volumes:
+      - postgres_data_yachay:/var/lib/postgresql/data
+    networks:
+      - yachay_network
+
+volumes:
+  postgres_data_yachay:
+
+networks:
+  yachay_network:
+    driver: bridge
